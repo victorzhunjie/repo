@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Douglas Wong's GitHub Gists</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.3.2/dist/semantic.min.css">
+
+    <style>
+        body {
+            background: repeating-linear-gradient(135deg, #dfdfdf 0, #dfdfdf 1%, #fff 0, #fff 50%) 0/20px 20px;
+        }
+        .ui.container {
+            margin-top: 3em;
+            margin-bottom: 3em;
+        }
+
+        td.datetime {
+            min-width: 120px;
+            color: rgba(0, 0, 0, .5);
+        }
+
+        span.middot,
+        td.language {
+            color: rgba(0, 0, 0, .5);
+        }
+
+        div.loading {
+            padding: 20px;
+        }
+
+        span.stats {
+            display: inline-block;
+            min-width: 100px;
+            color: rgba(0, 0, 0, .5);
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="ui container">
+        <div class="ui grid">
+            <div class="eight wide column">
+                    <div class="ui horizontal list">
+                        <div class="item">
+                            <img class="ui avatar image" src="https://avatars0.githubusercontent.com/u/7042016?v=4">
+                            <div class="content">
+                                <div class="header">Douglas Wong</div>
+                                <a href="https://twitter.com/douglaswong">https://twitter.com/douglaswong</a>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+            <div class="eight wide column">
+                    <a href="https://github.com/douglaswzs" class="right floated compact ui labeled icon blue button" title="Go to GitHub">
+                        <i class="github icon"></i>
+                        GitHub
+                    </a>
+            </div>
+        </div>
+        <table class="ui selectable table" id="myTable">
+            <thead>
+                <tr class="heading">
+                    <th colspan="5">
+                        <h3>GitHub Repositories</h3>
+                    </th>
+                </tr>
+                <tr>
+                    <th>Project</th>
+                    <th>Language</th>
+                    <th>Description</th>
+                    <th>Statistics</th>
+                    <th class="datetime">Last update</th>
+                </tr>
+            </thead>
+            <tbody id="myTableBody"></tbody>
+        </table>
+    </div>
+
+    <script src="jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.3.2/dist/semantic.min.js"></script>
+    <script type="text/javascript">
+        jQuery.githubUser = function (username, callback) {
+            jQuery.getJSON('https://api.github.com/users/' + username + '/repos?callback=?&per_page=100', callback)
+        }
+
+        jQuery.fn.loadRepos = function (username) {
+            this.html('<div class="loading">Querying GitHub for ' + username + '\'s repos...</div>');
+
+            var target = this;
+            $.githubUser(username, function (data) {
+                var repos = data.data; // JSON Parsing
+                sortByName(repos);
+                target.empty();
+                $(repos).each(function () {
+                    target.append('<tr>' +
+                        '<td class="item"><a href="' + this.html_url +
+                        '">' + this.name + '</a></td>' +
+                        '<td class="language">' + this.language + '</td>' +
+                        '<td class="description">' + this.description + '</td>' +
+                        '<td><span class="stats"><i class="code branch icon"></i>' + this.forks_count + ' &middot; <i class="star icon"></i>' + this.stargazers_count + '</span></td>' +
+                        '<td class="datetime"><span title="' + realDate(this.updated_at) + '">' +
+                        prettyDate(this.updated_at) + '</span></td>' +
+                        '</tr>');
+                });
+            });
+
+            function sortByName(data) {
+                data.sort(function (a, b) {
+                    return a.name - b.name;
+                });
+            }
+
+            function prettyDate(time) {
+                var date = new Date((time || "").replace(/-/g, "/").replace(/[TZ]/g, " "));
+                var secs = (((new Date()).getTime() - date.getTime()) / 1000);
+                Math.floor(secs);
+                var minutes = secs / 60;
+                secs = Math.floor(secs % 60);
+                if (minutes < 1) {
+                    return secs + (secs > 1 ? ' seconds ago' : ' second ago');
+                }
+                var hours = minutes / 60;
+                minutes = Math.floor(minutes % 60);
+                if (hours < 1) {
+                    return minutes + (minutes > 1 ? ' minutes ago' : ' minute ago');
+                }
+                var days = hours / 24;
+                hours = Math.floor(hours % 24);
+                if (days < 1) {
+                    return hours + (hours > 1 ? ' hours ago' : ' hour ago');
+                }
+                var weeks = days / 7;
+                days = Math.floor(days % 7);
+                if (weeks < 1) {
+                    return days + (days > 1 ? ' days ago' : ' day ago');
+                }
+                var months = weeks / 4.35;
+                weeks = Math.floor(weeks % 4.35);
+                if (months < 1) {
+                    return weeks + (weeks > 1 ? ' weeks ago' : ' week ago');
+                }
+                var years = months / 12;
+                months = Math.floor(months % 12);
+                if (years < 1) {
+                    return months + (months > 1 ? ' months ago' : ' month ago');
+                }
+                years = Math.floor(years);
+                return years + (years > 1 ? ' years ago' : ' years ago');
+            }
+
+            function realDate(time) {
+                return new Date((time || "").replace(/-/g, "/").replace(/[TZ]/g, " "));
+            }
+        };
+
+        $("#myTableBody").loadRepos("douglaswzs");
+    </script>
+
+</body>
+
+</html>
